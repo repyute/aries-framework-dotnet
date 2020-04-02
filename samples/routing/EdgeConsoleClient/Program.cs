@@ -57,7 +57,7 @@ namespace EdgeConsoleClient
                     {
                         builder.RegisterEdgeAgent(options =>
                         {
-                            options.EndpointUri = "http://localhost:5000";
+                            options.EndpointUri = "http://10.0.0.12:5000";
                             options.WalletConfiguration.Id = walletId;
                         });
                     });
