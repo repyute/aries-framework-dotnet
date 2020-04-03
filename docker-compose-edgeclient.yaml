@@ -1,0 +1,18 @@
+version: '3'
+services:
+  edgeclient:
+    build:
+      context: .
+      dockerfile: docker/edge-console-client.dockerfile
+    # environment:
+    #   - ASPNETCORE_URLS=http://10.0.0.13:4000
+    #   - ASPNETCORE_ENVIRONMENT=Development
+    #   - ENDPOINT_HOST=${HOST1:-http://10.0.0.11:5000}
+    ports:
+      - "4000:4000"
+    networks:
+    - aries-framework-dotnet_agent_net
+    
+networks:
+  aries-framework-dotnet_agent_net:
+    external: true

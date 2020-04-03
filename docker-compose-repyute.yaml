@@ -49,23 +49,23 @@ services:
         ipv4_address: 10.0.0.12
 
 
-  edgeclient:
-    build:
-      context: .
-      dockerfile: docker/edge-console-client.dockerfile
-    # environment:
-    #   - ASPNETCORE_URLS=http://10.0.0.13:4000
-    #   - ASPNETCORE_ENVIRONMENT=Development
-    #   - ENDPOINT_HOST=${HOST1:-http://10.0.0.11:5000}
-    ports:
-      - "4000:4000"
-    depends_on:
-      - "indy-pool"
-    links:
-      - "indy-pool"
-    networks:
-      agent_net:
-        ipv4_address: 10.0.0.13
+  # edgeclient:
+  #   build:
+  #     context: .
+  #     dockerfile: docker/edge-console-client.dockerfile
+  #   # environment:
+  #   #   - ASPNETCORE_URLS=http://10.0.0.13:4000
+  #   #   - ASPNETCORE_ENVIRONMENT=Development
+  #   #   - ENDPOINT_HOST=${HOST1:-http://10.0.0.11:5000}
+  #   ports:
+  #     - "4000:4000"
+  #   depends_on:
+  #     - "indy-pool"
+  #   links:
+  #     - "indy-pool"
+  #   networks:
+  #     agent_net:
+  #       ipv4_address: 10.0.0.13
 
     
 networks:
