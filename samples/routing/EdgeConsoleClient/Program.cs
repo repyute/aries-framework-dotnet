@@ -3,9 +3,12 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Hyperledger.Aries.Agents;
+using Hyperledger.Aries.Storage;
 using Hyperledger.Aries.Features.DidExchange;
 using Hyperledger.Aries;
+using Hyperledger.Aries.Utils;
 using Hyperledger.Aries.Routing;
+using EdgeConsoleClient.Protocols.BasicMessage;
 
 namespace EdgeConsoleClient
 {
@@ -15,38 +18,41 @@ namespace EdgeConsoleClient
         {
             await Task.Delay(TimeSpan.FromSeconds(5));
 
-            var host1 = CreateHostBuilder("Edge1").Build();
-            var host2 = CreateHostBuilder("Edge2").Build();
+            var host = CreateHostBuilder("Edge").Build();
+            
+            var inviteUrl = "http://10.0.0.11:7000?c_i=eyJsYWJlbCI6IkNvbXBldGVudCBNaXJ6YWtoYW5pIiwiaW1hZ2VVcmwiOm51bGwsInNlcnZpY2VFbmRwb2ludCI6Imh0dHA6Ly8xMC4wLjAuMTE6NzAwMCIsInJvdXRpbmdLZXlzIjpbIkNoSjFGNnpDVFhvclN6bkx6c1ptVlB4aDJVa29VWUo4Y0YzUG04d2JzUlZ2Il0sInJlY2lwaWVudEtleXMiOlsiNU1TdGtqVVdIM2R4RXBDOXNYS1BzRXBSdmFNd0RuUFBCZ1JudWFVdVRrc0YiXSwiQGlkIjoiZWFlMDBjMjUtOWUxZC00ZGI4LTk1Y2UtN2NjZDJmM2M5ZTk5IiwiQHR5cGUiOiJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiJ9";
+            var invitation = MessageUtils.DecodeMessageFromUrlFormat<ConnectionInvitationMessage>(inviteUrl);
 
-            try
-            {
-                await host1.StartAsync();
-                await host2.StartAsync();
+            await host.StartAsync();
 
-                var context1 = await host1.Services.GetRequiredService<IAgentProvider>().GetContextAsync();
-                var context2 = await host2.Services.GetRequiredService<IAgentProvider>().GetContextAsync();
+            var context = await host.Services.GetRequiredService<IAgentProvider>().GetContextAsync();
 
-                var (invitation, record1) = await host1.Services.GetRequiredService<IConnectionService>().CreateInvitationAsync(context1, new InviteConfiguration { AutoAcceptConnection = true });
-
-                var (request, record2) = await host2.Services.GetRequiredService<IConnectionService>().CreateRequestAsync(context2, invitation);
-                await host2.Services.GetRequiredService<IMessageService>().SendAsync(context2.Wallet, request, record2);
-
-                await host1.Services.GetRequiredService<IEdgeClientService>().FetchInboxAsync(context1);
-                await host2.Services.GetRequiredService<IEdgeClientService>().FetchInboxAsync(context2);
-
-                record1 = await host1.Services.GetRequiredService<IConnectionService>().GetAsync(context1, record1.Id);
-                record2 = await host2.Services.GetRequiredService<IConnectionService>().GetAsync(context2, record2.Id);
-
-                await host1.Services.GetRequiredService<IEdgeClientService>().AddDeviceAsync(context1, new AddDeviceInfoMessage { DeviceId = "123", DeviceVendor = "Apple" });
-
-                Console.WriteLine($"Record1 is {record1.State}, Record2 is {record2.State}");
+            var (request, record) = await host.Services.GetRequiredService<IConnectionService>().CreateRequestAsync(context, invitation);
+            await host.Services.GetRequiredService<IMessageService>().SendAsync(context.Wallet, request, record);
+            Console.WriteLine(record);
+            
+            await host.Services.GetRequiredService<IEdgeClientService>().FetchInboxAsync(context);
+            record = await host.Services.GetRequiredService<IConnectionService>().GetAsync(context, record.Id);
+            Console.WriteLine(record);
+            
+            while(true) {
+                await Task.Delay(TimeSpan.FromSeconds(5));
+                try
+                {
+                    await host.Services.GetRequiredService<IEdgeClientService>().FetchInboxAsync(context);
+                    var msgs = await host.Services.GetRequiredService<IWalletRecordService>().SearchAsync<BasicMessageRecord>(context.Wallet,
+                    SearchQuery.Equal(nameof(BasicMessageRecord.ConnectionId), record.Id), null, 10);
+                    Console.WriteLine("Messages..........");
+                    foreach( var item in msgs) {
+                        Console.WriteLine(item.Text);
+                    }
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine(e);
+                }
             }
-            catch(Exception e)
-            {
-                Console.WriteLine(e);
-            }
-
-            Console.WriteLine("Connected");
+            Console.WriteLine("Exiting...");
         }
 
         public static IHostBuilder CreateHostBuilder(string walletId) =>
@@ -61,6 +67,7 @@ namespace EdgeConsoleClient
                             options.WalletConfiguration.Id = walletId;
                         });
                     });
+                    services.AddSingleton<BasicMessageHandler>();
                 });
     }
 }
