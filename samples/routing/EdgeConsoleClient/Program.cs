@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Hyperledger.Aries.Agents;
@@ -9,50 +11,111 @@ using Hyperledger.Aries;
 using Hyperledger.Aries.Utils;
 using Hyperledger.Aries.Routing;
 using EdgeConsoleClient.Protocols.BasicMessage;
-
+using Hyperledger.Aries.Features.IssueCredential;
+using Hyperledger.Aries.Extensions;
 namespace EdgeConsoleClient
 {
     class Program
     {
         static async Task Main(string[] args)
         {
-            await Task.Delay(TimeSpan.FromSeconds(5));
-
             var host = CreateHostBuilder("Edge").Build();
-            
-            var inviteUrl = "http://10.0.0.11:7000?c_i=eyJsYWJlbCI6IkNvbXBldGVudCBNaXJ6YWtoYW5pIiwiaW1hZ2VVcmwiOm51bGwsInNlcnZpY2VFbmRwb2ludCI6Imh0dHA6Ly8xMC4wLjAuMTE6NzAwMCIsInJvdXRpbmdLZXlzIjpbIkNoSjFGNnpDVFhvclN6bkx6c1ptVlB4aDJVa29VWUo4Y0YzUG04d2JzUlZ2Il0sInJlY2lwaWVudEtleXMiOlsiNU1TdGtqVVdIM2R4RXBDOXNYS1BzRXBSdmFNd0RuUFBCZ1JudWFVdVRrc0YiXSwiQGlkIjoiZWFlMDBjMjUtOWUxZC00ZGI4LTk1Y2UtN2NjZDJmM2M5ZTk5IiwiQHR5cGUiOiJkaWQ6c292OkJ6Q2JzTlloTXJqSGlxWkRUVUFTSGc7c3BlYy9jb25uZWN0aW9ucy8xLjAvaW52aXRhdGlvbiJ9";
-            var invitation = MessageUtils.DecodeMessageFromUrlFormat<ConnectionInvitationMessage>(inviteUrl);
-
             await host.StartAsync();
-
             var context = await host.Services.GetRequiredService<IAgentProvider>().GetContextAsync();
-
-            var (request, record) = await host.Services.GetRequiredService<IConnectionService>().CreateRequestAsync(context, invitation);
-            await host.Services.GetRequiredService<IMessageService>().SendAsync(context.Wallet, request, record);
-            Console.WriteLine(record);
-            
-            await host.Services.GetRequiredService<IEdgeClientService>().FetchInboxAsync(context);
-            record = await host.Services.GetRequiredService<IConnectionService>().GetAsync(context, record.Id);
-            Console.WriteLine(record);
+            ConnectionRequestMessage request;
+            ConnectionRecord record = null;
             
             while(true) {
-                await Task.Delay(TimeSpan.FromSeconds(5));
-                try
-                {
-                    await host.Services.GetRequiredService<IEdgeClientService>().FetchInboxAsync(context);
-                    var msgs = await host.Services.GetRequiredService<IWalletRecordService>().SearchAsync<BasicMessageRecord>(context.Wallet,
-                    SearchQuery.Equal(nameof(BasicMessageRecord.ConnectionId), record.Id), null, 10);
-                    Console.WriteLine("Messages..........");
-                    foreach( var item in msgs) {
-                        Console.WriteLine(item.Text);
+                var options = new List<string>() { "1", "2", "3", "4", "0" };
+                Console.Write(@"
+                    Choose your option.
+                    1) Request Invitation
+                    2) Get basic messages
+                    3) List and request offer
+                    4) List Credentials
+                    0) Exit
+                ");
+                var option = Console.ReadLine();
+                if (options.Contains(option)) {
+                    switch(option) 
+                    {
+                    case "0":
+                        Console.WriteLine("Exiting....");
+                        break;
+                    case "1":
+                        Console.WriteLine("Enter Invite");
+                        var invite = Console.ReadLine();
+                        var invitation = MessageUtils.DecodeMessageFromUrlFormat<ConnectionInvitationMessage>(invite);
+
+                        (request, record) = await host.Services.GetRequiredService<IConnectionService>().CreateRequestAsync(context, invitation);
+                        await host.Services.GetRequiredService<IMessageService>().SendAsync(context.Wallet, request, record);
+                        Console.WriteLine(record);
+                        
+                        await host.Services.GetRequiredService<IEdgeClientService>().FetchInboxAsync(context);
+                        record = await host.Services.GetRequiredService<IConnectionService>().GetAsync(context, record.Id);
+                        Console.WriteLine(record);
+                        break;
+
+                    case "2":
+                        try
+                        {
+                            await host.Services.GetRequiredService<IEdgeClientService>().FetchInboxAsync(context);
+                            var msgs = await host.Services.GetRequiredService<IWalletRecordService>().SearchAsync<BasicMessageRecord>(context.Wallet,
+                            SearchQuery.Equal(nameof(BasicMessageRecord.ConnectionId), record.Id), null, 10);
+                            Console.WriteLine("Basic Messages..........");
+                            foreach( var item in msgs) {
+                                Console.WriteLine(item.Text);
+                            }
+                        }
+                        catch(Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                        break;
+
+                    case "3":
+                        try
+                        {
+                            await host.Services.GetRequiredService<IEdgeClientService>().FetchInboxAsync(context);
+                            var offers = await host.Services.GetRequiredService<ICredentialService>().ListOffersAsync(context);
+                            Console.WriteLine("Credential Offers..........");
+                            foreach( var item in offers) {
+                                Console.WriteLine(item);
+                                (var requestCred, var holderCredentialRecord) = await host.Services.GetRequiredService<ICredentialService>().CreateRequestAsync(context, item.Id);
+                                await host.Services.GetRequiredService<IMessageService>().SendAsync(context.Wallet, requestCred, record);
+                            }
+                        }
+                        catch(Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                        break;
+
+                    case "4":
+                        try
+                        {
+                            await host.Services.GetRequiredService<IEdgeClientService>().FetchInboxAsync(context);
+                            var creds = await host.Services.GetRequiredService<ICredentialService>().ListIssuedCredentialsAsync(context);
+                            Console.WriteLine("Credentials..........");
+                            foreach( var item in creds) {
+                                foreach( var credattr in item.CredentialAttributesValues) {
+                                    Console.WriteLine("{0} {1}", credattr.Name, credattr.Value);
+                                }
+                            }
+                        }
+                        catch(Exception e)
+                        {
+                            Console.WriteLine(e);
+                        }
+                        break;
+                    default:
+                        break;
                     }
-                }
-                catch(Exception e)
-                {
-                    Console.WriteLine(e);
+                    if (option == "0") break;
+                } else {
+                    Console.WriteLine("Wrong option try again.");
                 }
             }
-            Console.WriteLine("Exiting...");
         }
 
         public static IHostBuilder CreateHostBuilder(string walletId) =>
@@ -63,6 +126,8 @@ namespace EdgeConsoleClient
                     {
                         builder.RegisterEdgeAgent(options =>
                         {
+                            options.PoolName = "Test2Pool";
+                            options.GenesisFilename = Path.GetFullPath("pool_genesis.txn");
                             options.EndpointUri = "http://10.0.0.12:5000";
                             options.WalletConfiguration.Id = walletId;
                         });

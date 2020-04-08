@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Hyperledger.Aries.Storage;
 using Jdenticon.AspNetCore;
 using Microsoft.AspNetCore.Builder;
@@ -37,6 +38,9 @@ namespace WebAgent
                     c.EndpointUri = Environment.GetEnvironmentVariable("ENDPOINT_HOST") ?? Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
                     c.WalletConfiguration = new WalletConfiguration { Id = "WebAgentWallet" };
                     c.WalletCredentials = new WalletCredentials { Key = "MyWalletKey" };
+                    c.AgentKeySeed = "000000000000000000000000Steward1";
+                    c.GenesisFilename = Path.GetFullPath("pool_genesis.txn");
+                    c.PoolName = "TestPool";
                 });
             });
 

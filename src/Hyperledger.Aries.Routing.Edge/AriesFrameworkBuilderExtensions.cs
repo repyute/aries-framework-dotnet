@@ -40,6 +40,7 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddSingleton<IEdgeClientService, EdgeClientService>();
             builder.Services.AddSingleton<IEdgeProvisioningService, EdgeProvisioningService>();
             builder.Services.AddExtendedConnectionService<EdgeConnectionService>();
+            builder.Services.AddHostedService<PoolConfigurationService>();
             if (!delayProvisioning)
             {
                 builder.Services.AddHostedService<EdgeProvisioningService>();

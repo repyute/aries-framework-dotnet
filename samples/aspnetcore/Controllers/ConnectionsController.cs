@@ -8,12 +8,14 @@ using Hyperledger.Aries.Agents;
 using Hyperledger.Aries.Configuration;
 using Hyperledger.Aries.Contracts;
 using Hyperledger.Aries.Features.DidExchange;
+using Hyperledger.Aries.Features.IssueCredential;
 using Hyperledger.Aries.Models.Events;
 using Hyperledger.Aries.Storage;
 using Hyperledger.Aries.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 using WebAgent.Messages;
 using WebAgent.Models;
 using WebAgent.Protocols.BasicMessage;
@@ -31,15 +33,19 @@ namespace WebAgent.Controllers
         private readonly IAgentProvider _agentContextProvider;
         private readonly IMessageService _messageService;
         private readonly AgentOptions _walletOptions;
+        private readonly ISchemaService _schemaService;
 
+        private readonly ICredentialService _credentialService;
         public ConnectionsController(
             IEventAggregator eventAggregator,
             IConnectionService connectionService, 
             IWalletService walletService, 
             IWalletRecordService recordService,
             IProvisioningService provisioningService,
+            ISchemaService schemaService,
             IAgentProvider agentContextProvider,
             IMessageService messageService,
+            ICredentialService credentialService,
             IOptions<AgentOptions> walletOptions)
         {
             _eventAggregator = eventAggregator;
@@ -48,8 +54,10 @@ namespace WebAgent.Controllers
             _recordService = recordService;
             _provisioningService = provisioningService;
             _agentContextProvider = agentContextProvider;
+            _schemaService = schemaService;
             _messageService = messageService;
             _walletOptions = walletOptions.Value;
+            _credentialService = credentialService;
         }
 
         [HttpGet]
@@ -178,6 +186,58 @@ namespace WebAgent.Controllers
 
             // Send an agent message using the secure connection
             await _messageService.SendAsync(context.Wallet, message, connection);
+
+            return RedirectToAction("Details", new {id = connectionId});
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendOffer(string connectionId, string text)
+        {
+            var context = new AgentContext
+            {
+                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials)
+            };            
+            var connection = await _connectionService.GetAsync(context, connectionId);
+            var record = await _provisioningService.GetProvisioningAsync(context.Wallet);
+
+
+            (var offer, var issuerCredentialRecord) = await _credentialService.CreateOfferAsync(
+                agentContext: context,
+                config: new OfferConfiguration
+                {
+                    IssuerDid = record.Endpoint.Did,
+                    CredentialDefinitionId = text,
+                    CredentialAttributeValues = new List<CredentialPreviewAttribute>
+                        {
+                            new CredentialPreviewAttribute("Name", "Ayushman"),
+                            new CredentialPreviewAttribute("Rented", "Yes")
+                        },
+                },
+                connectionId: connectionId);
+            await _messageService.SendAsync(context.Wallet, offer, connection);
+
+            return RedirectToAction("Details", new {id = connectionId});
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendCredential(string connectionId)
+        {
+            var context = new AgentContext
+            {
+                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials)
+            };            
+            var connection = await _connectionService.GetAsync(context, connectionId);
+            var record = await _provisioningService.GetProvisioningAsync(context.Wallet);
+
+            var requests = await _credentialService.ListRequestsAsync(context);
+            foreach( var item in requests) {
+                (CredentialIssueMessage cred, _) = await _credentialService.CreateCredentialAsync(
+                agentContext: context,
+                credentialId: item.Id);
+                await _messageService.SendAsync(context.Wallet, cred, connection);
+            }
 
             return RedirectToAction("Details", new {id = connectionId});
         }

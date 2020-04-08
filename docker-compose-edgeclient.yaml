@@ -11,8 +11,10 @@ services:
     ports:
       - "4000:4000"
     networks:
-    - aries-framework-dotnet_agent_net
+    - ariesframeworkdotnet_agent_net
+    stdin_open: true
+    tty: true
     
 networks:
-  aries-framework-dotnet_agent_net:
+  ariesframeworkdotnet_agent_net:
     external: true

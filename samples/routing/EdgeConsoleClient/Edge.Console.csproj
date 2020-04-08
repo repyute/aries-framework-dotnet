@@ -11,6 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="pool_genesis.txn">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\src\Hyperledger.Aries.Routing.Edge\Hyperledger.Aries.Routing.Edge.csproj" />
   </ItemGroup>
 </Project>

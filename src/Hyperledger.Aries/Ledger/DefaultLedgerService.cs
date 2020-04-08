@@ -241,7 +241,7 @@ namespace Hyperledger.Aries.Ledger
             var response = JObject.Parse(res);
 
             if (!response["op"].ToObject<string>().Equals("reply", StringComparison.OrdinalIgnoreCase))
-                throw new AriesFrameworkException(ErrorCode.LedgerOperationRejected, "Ledger operation rejected");
+                throw new AriesFrameworkException(ErrorCode.LedgerOperationRejected, "Ledger operation rejected -- " + res);  
         }
     }
 }
