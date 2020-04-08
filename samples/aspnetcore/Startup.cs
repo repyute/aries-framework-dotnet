@@ -38,6 +38,10 @@ namespace WebAgent
                     c.EndpointUri = Environment.GetEnvironmentVariable("ENDPOINT_HOST") ?? Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
                     c.WalletConfiguration = new WalletConfiguration { Id = "WebAgentWallet" };
                     c.WalletCredentials = new WalletCredentials { Key = "MyWalletKey" };
+<<<<<<< HEAD
+=======
+                    c.AgentKeySeed = "000000000000000000000000Steward1";
+>>>>>>> credentials done
                     c.GenesisFilename = Path.GetFullPath("pool_genesis.txn");
                     c.PoolName = "TestPool";
                 });
