@@ -10,7 +10,8 @@ RUN dotnet restore "WebAgent.csproj" \
     -s "https://api.nuget.org/v3/index.json"
 
 COPY ["samples/aspnetcore/", "."]
-COPY ["docker/docker_pool_genesis.txn", "./pool_genesis.txn"]
+# COPY ["docker/docker_pool_genesis.txn", "./pool_genesis.txn"]
+RUN curl http://indy.ledger.repyute.com:9000/genesis > pool_genesis.txn
 RUN dotnet build "WebAgent.csproj" -c Release -o /app
 
 FROM build AS publish

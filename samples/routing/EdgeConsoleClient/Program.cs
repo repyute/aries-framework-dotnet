@@ -128,7 +128,7 @@ namespace EdgeConsoleClient
                         {
                             options.PoolName = "Test2Pool";
                             options.GenesisFilename = Path.GetFullPath("pool_genesis.txn");
-                            options.EndpointUri = "http://10.0.0.12:5000";
+                            options.EndpointUri = "http://dotnet.repyute.com:5000";
                             options.WalletConfiguration.Id = walletId;
                         });
                     });
