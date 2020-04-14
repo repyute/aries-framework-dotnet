@@ -1,0 +1,8 @@
+docker build -t dotnet-web-agent -f docker/web-agent.dockerfile .
+docker run -it -p 7000:7000 -e ASPNETCORE_URLS="http://0.0.0.0:7000" dotnet-web-agent
+
+docker build -t dotnet-mediator-agent -f docker/mediator-agent.dockerfile .
+docker run -it -p 5000:5000 -e ASPNETCORE_URLS="http://0.0.0.0:5000" dotnet-mediator-agent
+
+docker build -t dotnet-edge-agent -f docker/edge-agent.dockerfile .
+docker run -it dotnet-edge-agent

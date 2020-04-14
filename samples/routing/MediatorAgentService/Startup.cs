@@ -24,7 +24,8 @@ namespace MediatorAgentService
                     #region Required configuration parameters
                     // Agent endpoint. Use fully qualified endpoint.
                     // options.EndpointUri = "http://localhost:5000/";
-                    options.EndpointUri = Environment.GetEnvironmentVariable("ENDPOINT_HOST");
+                    // options.EndpointUri = Environment.GetEnvironmentVariable("ENDPOINT_HOST");
+                    options.EndpointUri = "http://dotnet.repyute.com:5000";
                     // The path to the genesis transaction file.
                     options.GenesisFilename = Path.GetFullPath("genesis_txn");
                     #endregion
