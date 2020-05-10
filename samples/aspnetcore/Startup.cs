@@ -35,14 +35,10 @@ namespace WebAgent
                 builder.RegisterAgent<SimpleWebAgent>(c =>
                 {
                     c.AgentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? NameGenerator.GetRandomName();
-                    // c.EndpointUri = Environment.GetEnvironmentVariable("ENDPOINT_HOST") ?? Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
-                    c.EndpointUri = "http://dotnet.repyute.com:7000";
+                    c.EndpointUri = Environment.GetEnvironmentVariable("ENDPOINT_HOST") ?? Environment.GetEnvironmentVariable("ASPNETCORE_URLS");
                     c.WalletConfiguration = new WalletConfiguration { Id = "WebAgentWallet" };
                     c.WalletCredentials = new WalletCredentials { Key = "MyWalletKey" };
-<<<<<<< HEAD
-=======
                     c.AgentKeySeed = "000000000000000000000000Steward1";
->>>>>>> credentials done
                     c.GenesisFilename = Path.GetFullPath("pool_genesis.txn");
                     c.PoolName = "TestPool";
                 });
