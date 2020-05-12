@@ -3,8 +3,8 @@
 @using WebAgent.Utils
 @model ConnectionDetailsViewModel
 
-<div class="row mt-2">
-    <div class="col-md-6">
+<div class="row mt-3">
+    <div class="col-md-4">
         <div class="card text-center mb-2">
             <div class="card-body">
                 <img style="width: 100px; height: 100px" src="@Url.Identicon(Model.Connection.Alias.Name, size: 200)" alt="@Model.Connection.Alias.Name">
@@ -45,7 +45,7 @@
             </ul>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card text-center">
             <div class="card-header">
                 Conversation
@@ -97,6 +97,42 @@
             <input type="hidden" name="connectionId" value="@Model.Connection.Id" />
             <div class="input-group-append">
                 <button class="btn btn-outline-primary" type="submit">Send Credential</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-header">
+                Generic Request Response
+            </div>
+            <div class="card-body ">
+                @if (!Model.FetchRecords.Any())
+                {
+                    <small class="text-muted">No fetch records</small>
+                }
+                else
+                {
+                    foreach (var fetchRecord in Model.FetchRecords.OrderBy(x => x.CreatedAtUtc))
+                    {
+                        <div class="d-flex flex-row">
+                            <div class="p-2 mr-5 bg-secondary text-white rounded basic-message">@fetchRecord.Type</div>
+                            <div class="p-2 mr-5 bg-secondary text-white rounded basic-message">@fetchRecord.Payload</div>
+                            <div class="p-2 mr-5 bg-secondary text-white rounded basic-message">@fetchRecord.Response</div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+        <form class="input-group mb-3" asp-controller="Connections" asp-action="SendGenericRequest">
+            <input type="hidden" name="connectionId" value="@Model.Connection.Id" />
+            <div class="input-group-append">
+                <button class="btn btn-outline-primary" type="submit">Send Generic Request</button>
+            </div>
+        </form>
+        <form class="input-group mb-3" asp-controller="Connections" asp-action="SendGenericResponse">
+            <input type="hidden" name="connectionId" value="@Model.Connection.Id" />
+            <div class="input-group-append">
+                <button class="btn btn-outline-primary" type="submit">Send Generic Response</button>
             </div>
         </form>
     </div>

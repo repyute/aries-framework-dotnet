@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Hyperledger.Aries.Features.DidExchange;
 using WebAgent.Protocols.BasicMessage;
+using WebAgent.Protocols.GenericFetch;
 
 namespace WebAgent.Models
 {
@@ -16,6 +17,8 @@ namespace WebAgent.Models
         public ConnectionRecord Connection { get; set; }
 
         public IEnumerable<BasicMessageRecord> Messages { get; set; }
+
+        public IEnumerable<GenericFetchRecord> FetchRecords { get; set; }
 
         public bool? TrustPingSuccess { get; set; }
     }

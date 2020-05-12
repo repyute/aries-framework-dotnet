@@ -2,6 +2,7 @@
 using Hyperledger.Aries.Agents;
 using WebAgent.Messages;
 using WebAgent.Protocols.BasicMessage;
+using WebAgent.Protocols.GenericFetch;
 
 namespace WebAgent
 {
@@ -18,6 +19,7 @@ namespace WebAgent
             AddForwardHandler();
             AddHandler<BasicMessageHandler>();
             AddHandler<TrustPingMessageHandler>();
+            AddHandler<GenericFetchHandler>();
             AddDiscoveryHandler();
             AddTrustPingHandler();
             AddCredentialHandler();

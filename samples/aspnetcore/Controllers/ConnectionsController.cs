@@ -20,6 +20,7 @@ using WebAgent.Messages;
 using WebAgent.Models;
 using WebAgent.Protocols.BasicMessage;
 using Hyperledger.Aries.Extensions;
+using WebAgent.Protocols.GenericFetch;
 
 namespace WebAgent.Controllers
 {
@@ -34,6 +35,7 @@ namespace WebAgent.Controllers
         private readonly IMessageService _messageService;
         private readonly AgentOptions _walletOptions;
         private readonly ISchemaService _schemaService;
+        private readonly IGenericFetchService _genericFetchService;
 
         private readonly ICredentialService _credentialService;
         public ConnectionsController(
@@ -46,6 +48,7 @@ namespace WebAgent.Controllers
             IAgentProvider agentContextProvider,
             IMessageService messageService,
             ICredentialService credentialService,
+            IGenericFetchService genericFetchService,
             IOptions<AgentOptions> walletOptions)
         {
             _eventAggregator = eventAggregator;
@@ -58,6 +61,7 @@ namespace WebAgent.Controllers
             _messageService = messageService;
             _walletOptions = walletOptions.Value;
             _credentialService = credentialService;
+            _genericFetchService = genericFetchService;
         }
 
         [HttpGet]
@@ -148,6 +152,8 @@ namespace WebAgent.Controllers
                 Connection = await _connectionService.GetAsync(context, id),
                 Messages = await _recordService.SearchAsync<BasicMessageRecord>(context.Wallet,
                     SearchQuery.Equal(nameof(BasicMessageRecord.ConnectionId), id), null, 10),
+                FetchRecords = await _recordService.SearchAsync<GenericFetchRecord>(context.Wallet,
+                    SearchQuery.Equal(nameof(GenericFetchRecord.ConnectionId), id), null, 10),
                 TrustPingSuccess = trustPingSuccess
             };
 
@@ -241,6 +247,57 @@ namespace WebAgent.Controllers
 
             return RedirectToAction("Details", new {id = connectionId});
         }
+
+        [HttpPost]
+        public async Task<IActionResult> SendGenericRequest(string connectionId)
+        {
+            var context = new AgentContext
+            {
+                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials)
+            };
+            var connection = await _connectionService.GetAsync(context, connectionId);
+            var record = await _provisioningService.GetProvisioningAsync(context.Wallet);
+
+            (var genericFetchRequest, var genericFetchRecord) = await _genericFetchService.CreateRequestAsync(
+                agentContext: context,
+                fetchRequest: new GenericFetchRequest
+                {
+                    Type = "GG",
+                    Payload = "GG"
+                },
+                connectionId: connectionId);
+
+            await _messageService.SendAsync(context.Wallet, genericFetchRequest, connection);
+
+            return RedirectToAction("Details", new { id = connectionId });
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> SendGenericResponse(string connectionId)
+        {
+            var context = new AgentContext
+            {
+                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials)
+            };
+            var connection = await _connectionService.GetAsync(context, connectionId);
+            var record = await _provisioningService.GetProvisioningAsync(context.Wallet);
+
+            var requests = await _genericFetchService.ListAsync(context);
+            foreach( var item in requests) {
+                (GenericFetchResponseMessage resp, _) = await _genericFetchService.CreateResponseAsync(
+                agentContext: context,
+                genericFetchRecordId: item.Id);
+                await _messageService.SendAsync(context.Wallet, resp, connection);
+            }
+
+            return RedirectToAction("Details", new {id = connectionId});
+        }
+
+
+
 
         [HttpPost]
         public IActionResult LaunchApp(LaunchAppViewModel model)

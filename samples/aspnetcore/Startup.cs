@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using WebAgent.Messages;
 using WebAgent.Protocols.BasicMessage;
 using WebAgent.Utils;
+using WebAgent.Protocols.GenericFetch;
 
 namespace WebAgent
 {
@@ -47,6 +48,8 @@ namespace WebAgent
             // Register custom handlers with DI pipeline
             services.AddSingleton<BasicMessageHandler>();
             services.AddSingleton<TrustPingMessageHandler>();
+            services.AddSingleton<IGenericFetchService, GenericFetchService>();
+            services.AddSingleton<GenericFetchHandler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

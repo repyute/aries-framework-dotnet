@@ -30,4 +30,10 @@
       <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Protocols\GenericFetch\" />
+    <Folder Include="Protocols\GenericFetch\Messages\" />
+    <Folder Include="Protocols\GenericFetch\Records\" />
+    <Folder Include="Protocols\GenericFetch\Models\" />
+  </ItemGroup>
 </Project>
