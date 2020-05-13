@@ -46,8 +46,14 @@ namespace WebAgent.Protocols.GenericFetch
                     {
                         var message = messageContext.GetMessage<GenericFetchRequestMessage>();
                         var record = await _genericFetchService.ProcessRequestAsync(agentContext, message, messageContext.Connection);
-
                         messageContext.ContextRecord = record;
+
+                        if (message.ReturnRoutingRequested() && messageContext.Connection == null)
+                        {
+                            var (respMessage, respRecord) = await _genericFetchService.CreateResponseAsync(agentContext, record.Id);
+                            messageContext.ContextRecord = respRecord;
+                            return respMessage;
+                        }
                         break;
                     }
                 case CustomMessageTypes.GenericFetchResponseMessageType:
