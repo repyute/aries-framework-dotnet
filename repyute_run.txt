@@ -6,3 +6,6 @@ docker run -it -p 5000:5000 -e ASPNETCORE_URLS="http://0.0.0.0:5000" dotnet-medi
 
 docker build -t dotnet-edge-agent -f docker/edge-agent.dockerfile .
 docker run -it dotnet-edge-agent
+
+
+docker run -it -p 7000:7000 -e AGENT_NAME=Repyute -e ENDPOINT_HOST=http://1e01e861.ngrok.io -e ASPNETCORE_URLS="http://0.0.0.0:7000" dotnet-web-agent
