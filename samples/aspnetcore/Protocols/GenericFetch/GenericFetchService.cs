@@ -22,6 +22,10 @@ using Hyperledger.Aries.Storage;
 using Hyperledger.Aries.Decorators.Service;
 using System.Diagnostics;
 using Hyperledger.Aries;
+using System.Net.Http;
+using System.Net;
+using System.Text;
+
 
 namespace WebAgent.Protocols.GenericFetch
 {
@@ -97,13 +101,31 @@ namespace WebAgent.Protocols.GenericFetch
         {
             var fetchRecord = await GetAsync(agentContext, genericFetchRecordId);
 
-            // Some state validation that fetchrecord is ready to be consumed
+            //TODO: Some state validation that fetchrecord is ready to be consumed
+            string fetchResponse = "";
 
-            // Processing request goes here
-            string fetch_response = "fixed response for now.";
+            string requestType = fetchRecord.Type;
+            string userToken = fetchRecord.Payload;
+            if (requestType == "DL_USER_GET") {
+                var baseAddress = "http://app.sandbox.repyute.com/v1/user";
+                using (var client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("Cookie", string.Format("token={0}", userToken));
+                    var result = await client.GetAsync(baseAddress);
+                    var resultString = await result.Content.ReadAsStringAsync();
+                    if (result.IsSuccessStatusCode)
+                    {
+                        fetchResponse = resultString;
+                    } else {
+                        fetchResponse = "Problem with dl request.";
+                    }
+                }
+            } else {
+                fetchResponse = "Bad resource type";
+            }
 
             // Update local credential record with new info
-            fetchRecord.Response = fetch_response;
+            fetchRecord.Response = fetchResponse;
 
             // Go deep into trigger and check if it is required heres
             await RecordService.UpdateAsync(agentContext.Wallet, fetchRecord);
@@ -111,7 +133,7 @@ namespace WebAgent.Protocols.GenericFetch
             var threadId = fetchRecord.GetTag(TagConstants.LastThreadId);
             var response = new GenericFetchResponseMessage
             {
-                FetchResponse = fetch_response
+                FetchResponse = fetchResponse
             };
 
             response.ThreadFrom(threadId);
