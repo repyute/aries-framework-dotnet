@@ -25,6 +25,7 @@ using Hyperledger.Aries;
 using System.Net.Http;
 using System.Net;
 using System.Text;
+using WebAgent.Services.Fabric;
 
 
 namespace WebAgent.Protocols.GenericFetch
@@ -41,6 +42,8 @@ namespace WebAgent.Protocols.GenericFetch
 
         protected readonly IMessageService MessageService;
 
+        protected readonly FabricService _fabricService;
+
         protected readonly int GenericFetchCreateRequestLoggingEventId = 10000;
 
         public GenericFetchService(
@@ -48,6 +51,7 @@ namespace WebAgent.Protocols.GenericFetch
             IEventAggregator eventAggregator,
             IWalletRecordService recordService,
             IMessageService messageService,
+            FabricService fabricService,
             ILogger<GenericFetchService> logger)
         {
             EventAggregator = eventAggregator;
@@ -55,6 +59,7 @@ namespace WebAgent.Protocols.GenericFetch
             MessageService = messageService;
             RecordService = recordService;
             Logger = logger;
+            _fabricService = fabricService;
         }
 
         public async Task<(GenericFetchRequestMessage, GenericFetchRecord)> CreateRequestAsync(IAgentContext agentContext, GenericFetchRequest fetchRequest, string connectionId)
@@ -105,8 +110,8 @@ namespace WebAgent.Protocols.GenericFetch
             string fetchResponse = "";
 
             string requestType = fetchRecord.Type;
-            string userToken = fetchRecord.Payload;
             if (requestType == "DL_USER_GET") {
+                string userToken = fetchRecord.Payload;
                 var baseAddress = "http://app.sandbox.repyute.com/v1/user";
                 using (var client = new HttpClient())
                 {
@@ -123,7 +128,7 @@ namespace WebAgent.Protocols.GenericFetch
             } else if (requestType == "FB_USERID_GET") {
                 fetchResponse = Environment.GetEnvironmentVariable("FB_USERID");
             } else if (requestType == "FB_DATA_GET") {
-                fetchResponse = "FB_DATA_GET not implemented";
+                fetchResponse = await _fabricService.GetData(fetchRecord.Payload);
             } else if (requestType == "FB_CONSENT_GET") {
                 fetchResponse = "FB_CONSENT_GET not implemented";
             } else {

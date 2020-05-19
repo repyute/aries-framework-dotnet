@@ -35,5 +35,8 @@
     <Folder Include="Protocols\GenericFetch\Messages\" />
     <Folder Include="Protocols\GenericFetch\Records\" />
     <Folder Include="Protocols\GenericFetch\Models\" />
+    <Folder Include="Services\" />
+    <Folder Include="Services\Fabric\" />
+    <Folder Include="Services\Models\" />
   </ItemGroup>
 </Project>

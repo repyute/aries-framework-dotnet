@@ -11,6 +11,7 @@ using WebAgent.Messages;
 using WebAgent.Protocols.BasicMessage;
 using WebAgent.Utils;
 using WebAgent.Protocols.GenericFetch;
+using WebAgent.Services.Fabric;
 
 namespace WebAgent
 {
@@ -52,6 +53,7 @@ namespace WebAgent
             services.AddSingleton<GenericFetchHandler>();
             services.AddHostedService<SimpleWebAgentProvisioningService>();
             services.AddSingleton<AgentDiscoveryMiddleware>();
+            services.AddSingleton<FabricService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
