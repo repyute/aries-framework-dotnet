@@ -246,6 +246,30 @@ namespace WebAgent.Controllers
             }
 
             return RedirectToAction("Details", new {id = connectionId});
+        }        
+
+        [HttpPost]
+        public async Task<IActionResult> SendConsentRequest(string connectionId)
+        {
+            var context = new AgentContext
+            {
+                Wallet = await _walletService.GetWalletAsync(_walletOptions.WalletConfiguration,
+                    _walletOptions.WalletCredentials)
+            };
+            var connection = await _connectionService.GetAsync(context, connectionId);
+            var record = await _provisioningService.GetProvisioningAsync(context.Wallet);
+
+            (var genericFetchRequest, var genericFetchRecord) = await _genericFetchService.CreateRequestAsync(
+                agentContext: context,
+                fetchRequest: new GenericFetchRequest
+                {
+                    Type = "FB_CONSENT_GET",
+                    Payload = ""
+                },
+                connectionId: connectionId);
+
+            await _messageService.SendAsync(context.Wallet, genericFetchRequest, connection);
+            return RedirectToAction("Details", new { id = connectionId });
         }
 
         [HttpPost]

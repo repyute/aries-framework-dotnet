@@ -50,6 +50,8 @@ namespace WebAgent
             services.AddSingleton<TrustPingMessageHandler>();
             services.AddSingleton<IGenericFetchService, GenericFetchService>();
             services.AddSingleton<GenericFetchHandler>();
+            services.AddHostedService<SimpleWebAgentProvisioningService>();
+            services.AddSingleton<AgentDiscoveryMiddleware>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -68,6 +70,9 @@ namespace WebAgent
 
             // Register agent middleware
             app.UseAriesFramework();
+            app.MapWhen(
+                context => context.Request.Path.ToString().Contains(".well-known/agent-configuration"),
+                builder => builder.UseMiddleware<AgentDiscoveryMiddleware>());
 
             // fun identicons
             app.UseJdenticon();

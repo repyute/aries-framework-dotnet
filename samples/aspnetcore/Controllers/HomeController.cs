@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using WebAgent.Models;
 using Hyperledger.Aries.Features.IssueCredential;
+using Hyperledger.Aries.Features.DidExchange;
 
 namespace WebAgent.Controllers
 {
@@ -18,6 +19,7 @@ namespace WebAgent.Controllers
 
         private readonly IWalletService _walletService;
         private readonly IProvisioningService _provisioningService;
+        private readonly IConnectionService _connectionService;
         private readonly AgentOptions _walletOptions;
 
         private readonly ISchemaService _schemaService;
@@ -26,6 +28,7 @@ namespace WebAgent.Controllers
         public HomeController(
             IWalletService walletService,
             IProvisioningService provisioningService,
+            IConnectionService connectionService,
             ISchemaService schemaService,
             IAgentProvider agentContextProvider,
             ILogger<HomeController> logger,
@@ -36,6 +39,7 @@ namespace WebAgent.Controllers
             _walletOptions = walletOptions.Value;
             _schemaService = schemaService;
             _agentContextProvider = agentContextProvider;
+            _connectionService = connectionService;
             _logger = logger;
         }
 
@@ -46,6 +50,18 @@ namespace WebAgent.Controllers
                 _walletOptions.WalletCredentials);
 
             var provisioning = await _provisioningService.GetProvisioningAsync(wallet);
+
+            var connectionId = provisioning.GetTag(SimpleWebAgentProvisioningService.MobileAppInvitationTagName);
+            var agentContext = await _agentContextProvider.GetContextAsync();
+            if (connectionId == null)
+            {
+                throw new Exception("This agent hasn't been provisioned with multiparty invite");
+            }
+            var inviation = await _connectionService.GetAsync(agentContext, connectionId);
+            string invitationString = inviation.GetTag(SimpleWebAgentProvisioningService.InvitationTagName);
+            var inviationBytes = System.Text.Encoding.UTF8.GetBytes(invitationString);
+            ViewData["Invitation"] = $"{provisioning.Endpoint.Uri}?c_i={System.Convert.ToBase64String(inviationBytes)}";
+
             return View(provisioning);
         }
         

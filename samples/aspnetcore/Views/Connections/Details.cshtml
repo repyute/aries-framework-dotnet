@@ -123,18 +123,18 @@
                 }
             </div>
         </div>
-        <form class="input-group mb-3" asp-controller="Connections" asp-action="SendGenericRequest">
+        <form class="input-group mb-3" asp-controller="Connections" asp-action="SendConsentRequest">
             <input type="hidden" name="connectionId" value="@Model.Connection.Id" />
             <div class="input-group-append">
-                <button class="btn btn-outline-primary" type="submit">Send Generic Request</button>
+                <button class="btn btn-outline-primary" type="submit">Send Consent Request</button>
             </div>
         </form>
-        <form class="input-group mb-3" asp-controller="Connections" asp-action="SendGenericResponse">
+        @* <form class="input-group mb-3" asp-controller="Connections" asp-action="SendGenericResponse">
             <input type="hidden" name="connectionId" value="@Model.Connection.Id" />
             <div class="input-group-append">
                 <button class="btn btn-outline-primary" type="submit">Send Generic Response</button>
             </div>
-        </form>
+        </form> *@
     </div>
 </div>
 

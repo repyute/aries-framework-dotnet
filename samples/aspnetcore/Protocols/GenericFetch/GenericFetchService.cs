@@ -120,11 +120,16 @@ namespace WebAgent.Protocols.GenericFetch
                         fetchResponse = "Problem with dl request.";
                     }
                 }
+            } else if (requestType == "FB_USERID_GET") {
+                fetchResponse = Environment.GetEnvironmentVariable("FB_USERID");
+            } else if (requestType == "FB_DATA_GET") {
+                fetchResponse = "FB_DATA_GET not implemented";
+            } else if (requestType == "FB_CONSENT_GET") {
+                fetchResponse = "FB_CONSENT_GET not implemented";
             } else {
                 fetchResponse = "Bad resource type";
             }
 
-            // Update local credential record with new info
             fetchRecord.Response = fetchResponse;
 
             // Go deep into trigger and check if it is required heres

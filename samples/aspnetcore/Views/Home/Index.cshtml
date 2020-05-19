@@ -2,19 +2,24 @@
 
 @{
     ViewData["Title"] = "Home";
+    var invitation = (string)ViewData["Invitation"];
+    var qrUri = $"https://chart.googleapis.com/chart?cht=qr&chs=300x300&chld=L|0&chl={Uri.EscapeDataString(invitation)}";
 }
-<div class="card text-center mt-2 w-50">
-    <div class="card-header">
-        Agent Provisioning Configuration
+    <div class="card text-center mt-2 w-50">
+        <div class="card-header">
+            Agent Provisioning Configuration
+        </div>
+        <img class="card-img" src="@qrUri" />
+        <div class="card-body">
+            <img style="width: 100px; height: 100px" src="@Url.Identicon(Model.Owner.Name, size: 200)" alt="@Model.Owner.Name">
+            <h5 class="card-title mt-2">@Model.Owner.Name</h5>
+            <small class="text-muted">@Model.Endpoint.Uri</small>
+            <input readonly="readonly" type="text" id="invitationDetails" autocomplete="off" class="form-control" value="@invitation" aria-label="Recipient's username" aria-describedby="basic-addon2">
+        </div>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="DID">@Model.Endpoint.Did</li>
+            <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="VERKEY">@Model.Endpoint.Verkey.First()</li>
+            <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="VERKEY">@Model.Endpoint.Verkey.First()</li>
+        </ul>
     </div>
-    <div class="card-body">
-        <img style="width: 100px; height: 100px" src="@Url.Identicon(Model.Owner.Name, size: 200)" alt="@Model.Owner.Name">
-        <h5 class="card-title mt-2">@Model.Owner.Name</h5>
-        <small class="text-muted">@Model.Endpoint.Uri</small>
-    </div>
-    <ul class="list-group list-group-flush">
-        <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="DID">@Model.Endpoint.Did</li>
-        <li class="list-group-item" data-toggle="tooltip" data-placement="top" title="VERKEY">@Model.Endpoint.Verkey.First()</li>
-    </ul>
-</div>
 @* <a class="btn btn-primary mt-3" role="button" asp-controller="Home" asp-action="CreateSchema">Create Schema</a> *@
